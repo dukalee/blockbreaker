@@ -22,8 +22,8 @@ export function drawItemIcon(
   ctx.fillStyle = ICON_COLOR
   ctx.strokeStyle = ICON_COLOR
   ctx.lineWidth = 0.17
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
+  ctx.lineCap = 'square'
+  ctx.lineJoin = 'miter'
 
   const circle = (x: number, y: number, r: number) => {
     ctx.beginPath()
@@ -86,7 +86,7 @@ export function drawItemIcon(
   ctx.restore()
 }
 
-/** 글로우가 있는 색 원 위에 아이콘을 올린 아이템 배지. 낙하 중인 아이템과 HUD 효과 칩에서 함께 쓴다. */
+/** 색 사각형 위에 아이콘을 올린 픽셀 스타일 아이템 배지. 낙하 중인 아이템과 HUD 효과 칩에서 함께 쓴다. */
 export function drawItemBadge(
   ctx: CanvasRenderingContext2D,
   type: ItemType,
@@ -95,25 +95,16 @@ export function drawItemBadge(
   cy: number,
   diameter: number,
 ): void {
-  const r = diameter / 2
-  ctx.save()
-  ctx.shadowColor = color
-  ctx.shadowBlur = diameter * 0.45
-  const body = ctx.createLinearGradient(0, cy - r, 0, cy + r)
-  body.addColorStop(0, '#ffffff')
-  body.addColorStop(0.35, color)
-  body.addColorStop(1, color)
-  ctx.fillStyle = body
-  ctx.beginPath()
-  ctx.arc(cx, cy, r, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  const x = Math.round(cx - diameter / 2)
+  const y = Math.round(cy - diameter / 2)
+  const border = Math.max(2, Math.round(diameter / 10))
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
-  ctx.lineWidth = Math.max(1.5, diameter * 0.05)
-  ctx.beginPath()
-  ctx.arc(cx, cy, r - 1, 0, Math.PI * 2)
-  ctx.stroke()
+  ctx.fillStyle = '#05060f'
+  ctx.fillRect(x + border, y + border, diameter, diameter)
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(x, y, diameter, diameter)
+  ctx.fillStyle = color
+  ctx.fillRect(x + border, y + border, diameter - border * 2, diameter - border * 2)
 
   drawItemIcon(ctx, type, cx, cy, diameter * 0.64)
 }

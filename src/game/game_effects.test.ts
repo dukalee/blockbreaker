@@ -269,6 +269,7 @@ describe('pause와 효과 시간', () => {
     const fresh = createGame()
     expect(fresh.effects).toEqual({
       ballSpeed: 'normal',
+      ballSpeedRemaining: 0,
       paddleSize: 'normal',
       paddleRemaining: 0,
       scoreBonusRemaining: 0,

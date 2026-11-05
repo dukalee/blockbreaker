@@ -2,7 +2,6 @@ import type { Rng } from './blocks'
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, WALL_THICKNESS } from './constants'
 
 export const STAR_COUNT = 140
-export const ASTEROID_COUNT = 9
 
 export interface Star {
   x: number
@@ -34,187 +33,70 @@ export function updateStars(stars: Star[], dt: number): void {
   }
 }
 
-export interface Crater {
-  /** 소행성 중심 기준 상대 위치(반지름의 비율)와 크기(반지름의 비율) */
-  dx: number
-  dy: number
-  size: number
-}
-
-export interface Asteroid {
-  x: number
-  y: number
-  radius: number
-  rotation: number
-  /** 회전 속도(rad/s) */
-  spin: number
-  vx: number
-  vy: number
-  /** 꼭짓점별 반지름 배율. 울퉁불퉁한 바위 모양을 만든다. */
-  shape: number[]
-  craters: Crater[]
-}
-
-export function createAsteroids(rng: Rng = Math.random, count = ASTEROID_COUNT): Asteroid[] {
-  return Array.from({ length: count }, () => {
-    const radius = 16 + rng() * 44
-    return {
-      x: rng() * LOGICAL_WIDTH,
-      y: rng() * LOGICAL_HEIGHT,
-      radius,
-      rotation: rng() * Math.PI * 2,
-      spin: (rng() - 0.5) * 0.6,
-      vx: -(6 + rng() * 14),
-      vy: 8 + rng() * 16,
-      shape: Array.from({ length: 11 }, () => 0.78 + rng() * 0.32),
-      craters: Array.from({ length: 2 + Math.floor(rng() * 2) }, () => ({
-        dx: (rng() - 0.5) * 0.9,
-        dy: (rng() - 0.5) * 0.9,
-        size: 0.12 + rng() * 0.16,
-      })),
-    }
-  })
-}
-
-/** 소행성을 천천히 흘려보내며 회전시킨다. 화면 밖으로 나가면 반대쪽에서 다시 나타난다. */
-export function updateAsteroids(asteroids: Asteroid[], dt: number): void {
-  for (const a of asteroids) {
-    a.x += a.vx * dt
-    a.y += a.vy * dt
-    a.rotation += a.spin * dt
-    const m = a.radius * 1.3
-    if (a.x < -m) a.x = LOGICAL_WIDTH + m
-    if (a.y > LOGICAL_HEIGHT + m) a.y = -m
-  }
-}
-
-/** 우주 배경: 별과 소행성(asteroid)이 흐르는 배경. */
+/** 픽셀 레트로 배경: 어두운 남색 격자 위로 네모난 별이 흐른다. */
 export interface Backdrop {
   stars: Star[]
-  asteroids: Asteroid[]
 }
 
 export function createBackdrop(rng: Rng = Math.random): Backdrop {
-  return { stars: createStars(rng), asteroids: createAsteroids(rng) }
+  return { stars: createStars(rng) }
 }
 
 export function updateBackdrop(backdrop: Backdrop, dt: number): void {
   updateStars(backdrop.stars, dt)
-  updateAsteroids(backdrop.asteroids, dt)
 }
 
-function renderNebula(ctx: CanvasRenderingContext2D): void {
-  const blobs = [
-    { x: 260, y: 200, r: 420, color: '120, 60, 200', a: 0.22 },
-    { x: 1050, y: 520, r: 460, color: '40, 120, 210', a: 0.18 },
-    { x: 720, y: 90, r: 320, color: '210, 60, 160', a: 0.1 },
-  ]
-  for (const b of blobs) {
-    const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r)
-    g.addColorStop(0, `rgba(${b.color}, ${b.a})`)
-    g.addColorStop(1, `rgba(${b.color}, 0)`)
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT)
-  }
-}
-
-function renderAsteroid(ctx: CanvasRenderingContext2D, a: Asteroid): void {
-  ctx.save()
-  ctx.translate(a.x, a.y)
-  ctx.rotate(a.rotation)
-
-  ctx.beginPath()
-  a.shape.forEach((k, i) => {
-    const ang = (i / a.shape.length) * Math.PI * 2
-    const px = Math.cos(ang) * a.radius * k
-    const py = Math.sin(ang) * a.radius * k
-    if (i === 0) ctx.moveTo(px, py)
-    else ctx.lineTo(px, py)
-  })
-  ctx.closePath()
-  // 왼쪽 위에서 빛을 받는 바위 질감
-  const rock = ctx.createLinearGradient(-a.radius, -a.radius, a.radius, a.radius)
-  rock.addColorStop(0, '#75699a')
-  rock.addColorStop(0.55, '#3b3556')
-  rock.addColorStop(1, '#16132a')
-  ctx.fillStyle = rock
-  ctx.fill()
-  ctx.strokeStyle = 'rgba(190, 175, 235, 0.35)'
-  ctx.lineWidth = 1.5
-  ctx.stroke()
-
-  for (const c of a.craters) {
-    const cx = c.dx * a.radius
-    const cy = c.dy * a.radius
-    const cr = c.size * a.radius
-    ctx.fillStyle = 'rgba(10, 8, 24, 0.45)'
-    ctx.beginPath()
-    ctx.arc(cx, cy, cr, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(190, 175, 235, 0.22)'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.arc(cx + cr * 0.15, cy + cr * 0.15, cr, Math.PI * 0.9, Math.PI * 1.9)
-    ctx.stroke()
-  }
-  ctx.restore()
-}
+const BG = '#0d0f1e'
+const GRID = '#151934'
+const GRID_STEP = 40
+const GRID_LINE = 4
 
 export function renderBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop, time: number): void {
-  const bg = ctx.createLinearGradient(0, 0, 0, LOGICAL_HEIGHT)
-  bg.addColorStop(0, '#04041a')
-  bg.addColorStop(1, '#170a36')
-  ctx.fillStyle = bg
+  ctx.fillStyle = BG
   ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT)
-  renderNebula(ctx)
 
-  ctx.fillStyle = '#ffffff'
+  // 픽셀 격자
+  ctx.fillStyle = GRID
+  for (let x = 0; x < LOGICAL_WIDTH; x += GRID_STEP) ctx.fillRect(x, 0, GRID_LINE, LOGICAL_HEIGHT)
+  for (let y = 0; y < LOGICAL_HEIGHT; y += GRID_STEP) ctx.fillRect(0, y, LOGICAL_WIDTH, GRID_LINE)
+
+  // 네모난 별: 반짝임은 부드러운 투명도 대신 켜고 끄는 방식으로 표현한다.
+  ctx.fillStyle = '#c9d3ff'
   for (const s of backdrop.stars) {
-    ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 2 + s.phase)
-    ctx.fillRect(s.x, s.y, s.size, s.size)
+    if (Math.sin(time * 2 + s.phase) < -0.2) continue
+    const size = s.size > 2 ? 4 : 2
+    ctx.fillRect(Math.round(s.x / 2) * 2, Math.round(s.y / 2) * 2, size, size)
   }
-  // 플레이 영역의 블록·공이 잘 보이도록 소행성은 살짝 어둡게 그린다.
-  ctx.globalAlpha = 0.85
-  for (const a of backdrop.asteroids) renderAsteroid(ctx, a)
-  ctx.globalAlpha = 1
 }
 
-/** 좌/우/상단 벽. 안쪽 가장자리에 네온 선을 그려 공이 튕기는 경계를 분명히 보여준다. */
+const WALL_LIGHT = '#c9d3ff'
+const WALL_DARK = '#5b66b8'
+const WALL_STEP = 8
+
+/** 좌/우/상단 벽. 밝고 어두운 8px 조각이 번갈아 이어지는 벽돌 띠로 그린다. */
 export function renderWalls(ctx: CanvasRenderingContext2D): void {
   const t = WALL_THICKNESS
   const w = LOGICAL_WIDTH
   const h = LOGICAL_HEIGHT
 
-  // 벽 본체: 바깥쪽이 어둡고 안쪽이 밝은 금속 느낌
-  const left = ctx.createLinearGradient(0, 0, t, 0)
-  left.addColorStop(0, '#0d1230')
-  left.addColorStop(1, '#3a4a7a')
-  ctx.fillStyle = left
-  ctx.fillRect(0, 0, t, h)
+  for (let y = 0; y < h; y += WALL_STEP * 2) {
+    ctx.fillStyle = WALL_LIGHT
+    ctx.fillRect(0, y, t, WALL_STEP)
+    ctx.fillRect(w - t, y, t, WALL_STEP)
+    ctx.fillStyle = WALL_DARK
+    ctx.fillRect(0, y + WALL_STEP, t, WALL_STEP)
+    ctx.fillRect(w - t, y + WALL_STEP, t, WALL_STEP)
+  }
+  for (let x = t; x < w - t; x += WALL_STEP * 2) {
+    ctx.fillStyle = WALL_LIGHT
+    ctx.fillRect(x, 0, WALL_STEP, t)
+    ctx.fillStyle = WALL_DARK
+    ctx.fillRect(x + WALL_STEP, 0, WALL_STEP, t)
+  }
+}
 
-  const right = ctx.createLinearGradient(w, 0, w - t, 0)
-  right.addColorStop(0, '#0d1230')
-  right.addColorStop(1, '#3a4a7a')
-  ctx.fillStyle = right
-  ctx.fillRect(w - t, 0, t, h)
-
-  const top = ctx.createLinearGradient(0, 0, 0, t)
-  top.addColorStop(0, '#0d1230')
-  top.addColorStop(1, '#3a4a7a')
-  ctx.fillStyle = top
-  ctx.fillRect(0, 0, w, t)
-
-  // 안쪽 가장자리의 네온 경계선
-  ctx.save()
-  ctx.strokeStyle = '#4de3ff'
-  ctx.shadowColor = '#4de3ff'
-  ctx.shadowBlur = 14
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(t, h)
-  ctx.lineTo(t, t)
-  ctx.lineTo(w - t, t)
-  ctx.lineTo(w - t, h)
-  ctx.stroke()
-  ctx.restore()
+/** 오래된 CRT 화면 같은 가로 스캔라인. 맨 마지막에 화면 전체에 덧씌운다. */
+export function renderScanlines(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.16)'
+  for (let y = 2; y < LOGICAL_HEIGHT; y += 4) ctx.fillRect(0, y, LOGICAL_WIDTH, 2)
 }

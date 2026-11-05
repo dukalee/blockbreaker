@@ -201,7 +201,13 @@ export function updateGame(state: GameState, input: InputState, dt: number): voi
     return
   }
 
+  const speedBefore = state.effects.ballSpeed
   updateEffects(state.effects, dt)
+  if (state.effects.ballSpeed !== speedBefore) {
+    // 공 속도 효과가 시간이 다해 끝났으면 공 속력을 기본으로 되돌린다.
+    const speed = currentBallSpeed(state)
+    for (const ball of state.balls) setBallSpeed(ball, speed)
+  }
   syncPaddleWidth(state)
   updatePaddle(state.paddle, input, dt)
   state.items = updateItems(state.items, state.paddle, dt, (type) => applyPickup(state, type))

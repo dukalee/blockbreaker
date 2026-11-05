@@ -42,39 +42,19 @@ export function updatePaddle(paddle: Paddle, input: InputState, dt: number): voi
   }
 }
 
-/** 네온 빛이 나는 입체감 있는 막대: 위쪽이 밝고 아래쪽이 어두운 그라데이션, 윗면 하이라이트, 외곽 글로우. */
+/** 각진 픽셀 막대: 단색 면 + 윗면 하이라이트 + 아랫면 그림자 + 오른쪽 아래로 떨어지는 단단한 그림자. */
 export function renderPaddle(ctx: CanvasRenderingContext2D, paddle: Paddle): void {
-  const x = paddle.x - paddle.width / 2
-  const { y, width: w, height: h } = paddle
-  const r = 6
+  const x = Math.round(paddle.x - paddle.width / 2)
+  const y = Math.round(paddle.y)
+  const w = Math.round(paddle.width)
+  const h = paddle.height
 
-  ctx.save()
-  ctx.shadowColor = '#4de3ff'
-  ctx.shadowBlur = 18
-  const body = ctx.createLinearGradient(0, y, 0, y + h)
-  body.addColorStop(0, '#b8f7ff')
-  body.addColorStop(0.45, '#35cfff')
-  body.addColorStop(1, '#0a5f86')
-  ctx.fillStyle = body
-  ctx.beginPath()
-  ctx.roundRect(x, y, w, h, r)
-  ctx.fill()
-  ctx.restore()
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.roundRect(x, y, w, h, r)
-  ctx.clip()
-  // 윗면 하이라이트와 아랫면 그림자로 입체감을 준다.
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'
-  ctx.fillRect(x, y, w, h * 0.35)
-  ctx.fillStyle = 'rgba(0, 20, 40, 0.35)'
-  ctx.fillRect(x, y + h * 0.78, w, h * 0.22)
-  ctx.restore()
-
-  ctx.strokeStyle = '#d8fbff'
-  ctx.lineWidth = 1.5
-  ctx.beginPath()
-  ctx.roundRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5, r)
-  ctx.stroke()
+  ctx.fillStyle = '#05060f'
+  ctx.fillRect(x + 4, y + 4, w, h)
+  ctx.fillStyle = '#4dc3ff'
+  ctx.fillRect(x, y, w, h)
+  ctx.fillStyle = '#a9e6ff'
+  ctx.fillRect(x, y, w, 6)
+  ctx.fillStyle = '#1f6fa6'
+  ctx.fillRect(x, y + h - 6, w, 6)
 }

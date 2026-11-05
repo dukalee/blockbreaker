@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { createBall, launchBall, updateBall } from './ball'
-import { createAsteroids, createBackdrop, updateAsteroids, updateBackdrop } from './backdrop'
+import { createBackdrop, updateBackdrop } from './backdrop'
 import { shade } from './blockRender'
 import {
   BLOCK_AREA_LEFT,
   BLOCK_WIDTH,
   GRID_COLS,
-  LOGICAL_HEIGHT,
   LOGICAL_WIDTH,
   PADDLE_WIDTH,
   PLAY_LEFT,
@@ -82,43 +81,12 @@ describe('벽 경계', () => {
   })
 })
 
-describe('우주 소행성 배경', () => {
-  it('소행성이 화면 안에 생성되고 모양과 분화구를 가진다', () => {
-    const asteroids = createAsteroids()
-    expect(asteroids.length).toBeGreaterThan(0)
-    for (const a of asteroids) {
-      expect(a.x).toBeGreaterThanOrEqual(0)
-      expect(a.x).toBeLessThanOrEqual(LOGICAL_WIDTH)
-      expect(a.y).toBeGreaterThanOrEqual(0)
-      expect(a.y).toBeLessThanOrEqual(LOGICAL_HEIGHT)
-      expect(a.shape.length).toBeGreaterThanOrEqual(8)
-      expect(a.craters.length).toBeGreaterThan(0)
-    }
-  })
-
-  it('소행성은 천천히 움직이며 회전하고, 화면 밖으로 나가면 반대편에서 나타난다', () => {
-    const a = createAsteroids(() => 0.7, 1)
-    const { x, y, rotation } = a[0]
-    updateAsteroids(a, 1)
-    expect(a[0].x).not.toBe(x)
-    expect(a[0].y).not.toBe(y)
-    expect(a[0].rotation).not.toBe(rotation)
-
-    a[0].x = -1000
-    updateAsteroids(a, 0.01)
-    expect(a[0].x).toBeGreaterThan(LOGICAL_WIDTH)
-    a[0].y = LOGICAL_HEIGHT + 1000
-    updateAsteroids(a, 0.01)
-    expect(a[0].y).toBeLessThan(0)
-  })
-
-  it('배경은 별과 소행성을 함께 갱신한다', () => {
+describe('픽셀 배경', () => {
+  it('배경은 별을 아래로 흘려보낸다', () => {
     const b = createBackdrop()
     const star = b.stars[0].y
-    const rock = b.asteroids[0].x
     updateBackdrop(b, 0.5)
     expect(b.stars[0].y).not.toBe(star)
-    expect(b.asteroids[0].x).not.toBe(rock)
   })
 })
 

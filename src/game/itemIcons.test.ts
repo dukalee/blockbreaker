@@ -79,10 +79,10 @@ describe('아이템 아이콘', () => {
     expect(Math.abs(longMoves[0])).toBeLessThan(Math.abs(shortMoves[0]))
   })
 
-  it('배지는 색 원에 아이콘을 올려 그리고, 크기에 따라 아이콘이 비례한다', () => {
+  it('배지는 색 사각형에 아이콘을 올려 그린다', () => {
     const { ctx, calls } = recorder()
     drawItemBadge(ctx, 'scoreBonus', '#ffd93d', 50, 60, 40)
-    expect(calls.some((c) => c.startsWith('arc(50.000,60.000,20.000'))).toBe(true)
+    expect(calls.some((c) => c.startsWith('fillRect(30.000,40.000,40.000,40.000'))).toBe(true)
     expect(calls.some((c) => c.startsWith('fillText'))).toBe(false)
   })
 
@@ -90,7 +90,7 @@ describe('아이템 아이콘', () => {
     const { ctx, calls } = recorder()
     const items: Item[] = ITEM_TYPES.map((type, i) => ({ type, x: 100 + i * 60, y: 200, width: 40, height: 40 }))
     renderItems(ctx, items)
-    const badges = calls.filter((c) => c.startsWith('arc(') && c.includes(',20.000,'))
+    const badges = calls.filter((c) => c.startsWith('fillRect(') && c.endsWith(',40.000,40.000)'))
     expect(badges.length).toBeGreaterThanOrEqual(ITEM_TYPES.length)
     expect(calls.some((c) => c.startsWith('fillText'))).toBe(false)
   })

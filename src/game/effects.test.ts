@@ -38,13 +38,28 @@ describe('공 속도 상태 전이', () => {
     expect(ballSpeedMultiplier(e)).toBe(1)
   })
 
-  it('지속 시간이 없어 시간이 지나도 유지되고, resetBallSpeed로만 초기화된다', () => {
+  it('10초가 지나면 기본 속도로 돌아가고, 재습득하면 10초로 갱신된다', () => {
     const e = createEffects()
     applyItem(e, 'ballSpeedUp')
-    updateEffects(e, 100)
+    updateEffects(e, 9)
     expect(ballSpeedMultiplier(e)).toBe(2)
+    applyItem(e, 'ballSpeedUp')
+    expect(e.ballSpeedRemaining).toBe(ITEM_DURATION_SEC)
+    updateEffects(e, 9)
+    expect(ballSpeedMultiplier(e)).toBe(2)
+    updateEffects(e, 1)
+    expect(ballSpeedMultiplier(e)).toBe(1)
+    applyItem(e, 'ballSpeedDown')
+    updateEffects(e, 10)
+    expect(ballSpeedMultiplier(e)).toBe(1)
+  })
+
+  it('시간이 남아 있어도 resetBallSpeed로 초기화된다', () => {
+    const e = createEffects()
+    applyItem(e, 'ballSpeedUp')
     resetBallSpeed(e)
     expect(ballSpeedMultiplier(e)).toBe(1)
+    expect(e.ballSpeedRemaining).toBe(0)
   })
 })
 
@@ -139,7 +154,7 @@ describe('독립성과 표시', () => {
     applyItem(e, 'paddleShort')
     applyItem(e, 'scoreBonus')
     expect(activeEffects(e)).toEqual([
-      { type: 'ballSpeedDown', remaining: null },
+      { type: 'ballSpeedDown', remaining: 10 },
       { type: 'paddleShort', remaining: 10 },
       { type: 'scoreBonus', remaining: 10 },
     ])

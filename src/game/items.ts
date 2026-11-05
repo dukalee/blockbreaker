@@ -82,12 +82,12 @@ export function updateItems(
 }
 
 const ITEM_COLOR: Record<ItemType, string> = {
-  multiBall: '#ff5d73',
-  ballSpeedUp: '#ff9f43',
-  ballSpeedDown: '#4dd2ff',
-  paddleLong: '#6bd96b',
+  multiBall: '#ff4d6d',
+  ballSpeedUp: '#ff9f3d',
+  ballSpeedDown: '#4dc3ff',
+  paddleLong: '#5dff9a',
   paddleShort: '#8c7bff',
-  scoreBonus: '#ffd93d',
+  scoreBonus: '#ffd84d',
 }
 
 /** 아이템 종류별 대표 색. HUD 효과 표시에서도 사용한다. */

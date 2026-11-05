@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { audio } from '../game/audio'
 import { renderBall } from '../game/ball'
-import { createBackdrop, renderBackdrop, renderWalls, updateBackdrop } from '../game/backdrop'
+import { createBackdrop, renderBackdrop, renderScanlines, renderWalls, updateBackdrop } from '../game/backdrop'
 import { renderBlocks } from '../game/blockRender'
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../game/constants'
 import { createGame, drainEvents, setPaused, togglePause, updateGame, type GameState } from '../game/game'
@@ -16,6 +16,7 @@ import {
   MUTE_BUTTON,
   PAUSE_BUTTON,
   RESTART_BUTTON,
+  renderFooter,
   renderGameOver,
   renderHud,
   renderMuteButton,
@@ -24,6 +25,7 @@ import {
   renderTitle,
   SLIDER_HIT_AREA,
   sliderValueAt,
+  START_BUTTON,
 } from '../game/ui'
 
 export type Screen = 'title' | 'playing' | 'gameOver'
@@ -39,8 +41,11 @@ interface Props {
   onReturnToTitle: () => void
 }
 
+/** 게임 화면이 브라우저 창에서 차지하는 비율. 나머지는 여백으로 둔다. */
+const WINDOW_FILL_RATIO = 0.8
+
 function currentViewport(): Viewport {
-  return fitViewport(window.innerWidth, window.innerHeight)
+  return fitViewport(window.innerWidth * WINDOW_FILL_RATIO, window.innerHeight * WINDOW_FILL_RATIO)
 }
 
 export function GameCanvas(props: Props) {
@@ -62,6 +67,9 @@ export function GameCanvas(props: Props) {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
+
+    // 픽셀 스타일: 이미지 보간을 끄고 또렷하게 그린다.
+    ctx.imageSmoothingEnabled = false
 
     const input = new InputState()
     const backdrop = createBackdrop()
@@ -123,6 +131,11 @@ export function GameCanvas(props: Props) {
     }
     const onClick = (e: MouseEvent) => {
       audio.unlock()
+      if (screen === 'title') {
+        const p = logicalPoint(e)
+        if (hitTest(START_BUTTON, p.x, p.y)) propsRef.current.onStart()
+        return
+      }
       if (!game) return
       const { x, y } = logicalPoint(e)
       if (hitTest(PAUSE_BUTTON, x, y)) {
@@ -192,6 +205,8 @@ export function GameCanvas(props: Props) {
           renderMuteButton(ctx, audio.isMuted)
           renderPauseButton(ctx)
           if (game.paused) renderPauseMenu(ctx, audio.getVolume(), audio.isMuted)
+          renderFooter(ctx)
+          renderScanlines(ctx)
         },
       })
     } else {

@@ -49,7 +49,7 @@ export const BLOCK_AREA_TOP = 100
 export const BLOCK_WIDTH = 100
 export const BLOCK_HEIGHT = 32
 export const BLOCK_DRAW_INSET = 2
-export const BLOCK_COLORS = ['#ff5d73', '#ff9f43', '#ffd93d', '#6bd96b', '#4dd2ff', '#8c7bff', '#e86bff']
+export const BLOCK_COLORS = ['#ff4d6d', '#ff9f3d', '#ffd84d', '#5dff9a', '#4dc3ff', '#8c7bff', '#ff6bd6']
 
 // 아이템
 export const ITEM_WIDTH = 40

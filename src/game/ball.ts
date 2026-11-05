@@ -171,8 +171,12 @@ export function updateBall(
 }
 
 export function renderBall(ctx: CanvasRenderingContext2D, ball: Ball): void {
+  // 네모난 픽셀 공: 오른쪽 아래로 단단한 그림자를 둔다.
+  const size = Math.round(ball.radius * 1.6)
+  const x = Math.round(ball.x - size / 2)
+  const y = Math.round(ball.y - size / 2)
+  ctx.fillStyle = '#6d77c9'
+  ctx.fillRect(x + 4, y + 4, size, size)
   ctx.fillStyle = '#ffffff'
-  ctx.beginPath()
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2)
-  ctx.fill()
+  ctx.fillRect(x, y, size, size)
 }
